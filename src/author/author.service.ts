@@ -22,6 +22,57 @@ class AuthorService {
             where: { 
                 id,
             }, 
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+    }
+
+    static async createAuthor(
+        author: Omit<Author, "id">
+    ): Promise<Author> {
+        const { firstName, lastName } = author;
+        return db.author.create({
+            data: {
+                firstName,
+                lastName,
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+    }
+
+    static async updateAuthor(
+        author: Omit<Author, "id">, 
+        id: number
+    ): Promise<Author> {
+        const { firstName, lastName } = author;
+        return db.author.update({
+            where: {
+                id,
+            },
+            data: {
+                firstName,
+                lastName,
+            },
+            select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+            },
+        });
+    }
+
+    static async deleteAuthor(id: number): Promise<void> {
+        await db.author.delete({
+            where: {
+                id,
+            },
         });
     }
 }
