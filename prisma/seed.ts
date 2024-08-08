@@ -9,6 +9,7 @@ type Book = {
   title: string;
   isFiction: boolean;
   datePublished: Date;
+  authorFullName: string; 
 };
 
 async function seed() {
@@ -17,7 +18,8 @@ async function seed() {
     const authors = getAuthors();
     
     await db.author.deleteMany({});
-    
+    await db.book.deleteMany({});
+
     const createdAuthors = await Promise.all(
       authors.map(async (author) => {
         const result = await db.author.create({
@@ -35,25 +37,23 @@ async function seed() {
       createdAuthors.map(author => [`${author.firstName} ${author.lastName}`, author.id])
     );
 
-    console.log("Fetching author 'Yuval Noah'...");
-    const yuvalNoahId = authorMap.get("Yuval Noah Harari");
-
-    if (!yuvalNoahId) {
-      console.error("Author 'Yuval Noah Harari' not found. Please ensure the author is seeded correctly.");
-      return;
-    }
-
     console.log("Seeding books...");
     await Promise.all(
       getBooks().map(async (book) => {
+        const authorId = authorMap.get(book.authorFullName);
+        if (!authorId) {
+          console.error(`Author '${book.authorFullName}' not found. Please ensure the author is seeded correctly.`);
+          return;
+        }
+
         try {
           const result = await db.book.create({
             data: {
               title: book.title,
               isFiction: book.isFiction,
               datePublished: book.datePublished,
-              authorId: yuvalNoahId
-            }
+              authorId: authorId,
+            },
           });
           console.log("Book created:", result);
         } catch (error) {
@@ -82,16 +82,19 @@ function getBooks(): Array<Book> {
       title: "Sapiens",
       isFiction: false,
       datePublished: new Date(),
+      authorFullName: "Yuval Noah Harari"
     },
     {
       title: "Homo Deus",
       isFiction: false,
       datePublished: new Date(),
+      authorFullName: "John Doe" 
     },
     {
       title: "The Ugly Duckling",
       isFiction: true,
       datePublished: new Date(),
+      authorFullName: "William Shakespeare" 
     }
   ];
 }

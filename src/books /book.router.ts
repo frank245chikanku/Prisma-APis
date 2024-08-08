@@ -1,5 +1,6 @@
 import express from "express";
 import type { Request, Response } from "express";
+import { body, validationResult } from "express-validator";
 import BookService from "./book.service";
 
 export const bookRouter = express.Router();
@@ -25,3 +26,26 @@ bookRouter.get("/:id", async (request: Request, response: Response) => {
         return response.status(500).json({ message: error.message });
     }
 });
+bookRouter.post(
+    "/",
+    body("title").isString(),
+    body("authorId").isInt(),
+    body("datePublished").isDate().toDate(),
+    body("isFiction").isBoolean(),
+    async (request: Request, response: Response) => {
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({ errors: errors.array() });
+        }
+
+        try {
+            const book = request.body;
+            const newBook = await BookService.createBook(book);
+            return response.status(201).json(newBook);
+        } catch (error: any) {
+            return response.status(500).json({ message: error.message });
+        }
+    }
+);
+
+export default bookRouter;
