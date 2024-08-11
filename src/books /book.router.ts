@@ -26,6 +26,7 @@ bookRouter.get("/:id", async (request: Request, response: Response) => {
         return response.status(500).json({ message: error.message });
     }
 });
+
 bookRouter.post(
     "/",
     body("title").isString(),
@@ -47,5 +48,40 @@ bookRouter.post(
         }
     }
 );
+
+bookRouter.put(
+    "/:id",
+    body("title").optional().isString(),
+    body("authorId").optional().isInt(),
+    body("datePublished").optional().isDate().toDate(),
+    body("isFiction").optional().isBoolean(),
+    async (request: Request, response: Response) => {
+        const errors = validationResult(request);
+        if (!errors.isEmpty()) {
+            return response.status(400).json({ errors: errors.array() });
+        }
+
+        const id: number = parseInt(request.params.id, 10);
+
+        try {
+            const book = request.body;
+            const updateBook = await BookService.updateBook(book, id);
+            return response.status(200).json(updateBook);
+        } catch (error: any) {
+            return response.status(500).json({ message: error.message });
+        }
+    }
+);
+
+
+bookRouter.delete("/:id", async (request: Request, response: Response) => {
+    const id: number = parseInt(request.params.id, 10);
+    try {
+        await BookService.deleteBook(id);
+        return response.status(204).send();
+    } catch (error: any) {
+        return response.status(500).json({ message: error.message });
+    }
+});
 
 export default bookRouter;
